@@ -1,5 +1,9 @@
-// בפיתוח מקומי: localhost. ב-Vercel: מוגדר במשתנה הסביבה VITE_API_URL
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+// אפשר לדרוס עם VITE_API_URL. אחרת: באתר החי — השרת ב-Vercel, בפיתוח מקומי — localhost
+const API_URL =
+  import.meta.env.VITE_API_URL ??
+  (import.meta.env.PROD
+    ? "https://aley-siach-y4c5.vercel.app"
+    : "http://localhost:3000");
 
 export const api = {
   guides: {
