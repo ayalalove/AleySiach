@@ -344,8 +344,11 @@ body {
   background: #fafbff;
 }
 
+/* היום — מסגרת כחולה, כדי שלא יתבלבל עם הרקע הסגול של שבת */
 .fc .fc-day-today {
-  background: #f7f8ff !important;
+  background: #f0f7ff !important;
+
+  box-shadow: inset 0 0 0 2px #3b82f6;
 }
 
 
@@ -383,13 +386,29 @@ body {
 }
 
 .fc .fc-day-today .day-number {
-  background: #4f46e5;
+  background: #3b82f6;
 
   color: white;
 
   box-shadow:
     0 5px 13px
-    rgba(79, 70, 229, 0.25);
+    rgba(59, 130, 246, 0.3);
+}
+
+.fc .fc-day-today .day-dates::after {
+  content: "היום";
+
+  padding: 1px 7px;
+
+  border-radius: 999px;
+
+  background: #dbeafe;
+
+  color: #1d4ed8;
+
+  font-size: 10px;
+
+  font-weight: 800;
 }
 
 /* =====================================
@@ -515,11 +534,13 @@ body {
 
   margin-top: 5px;
 
-  border: 1px dashed #d7dce7;
+  border: 1px dashed #c7d2fe;
 
   border-radius: 14px;
 
-  color: #a0a9b8;
+  background: #f7f8ff;
+
+  color: #6366f1;
 
   font-size: 11px;
 
@@ -530,11 +551,11 @@ body {
 
 .fc .fc-daygrid-day:hover
 .empty-assignment {
-  border-color: #a5b4fc;
+  border-color: #818cf8;
 
-  background: #f7f8ff;
+  background: #eef2ff;
 
-  color: #6366f1;
+  color: #4f46e5;
 }
 
 .plus {
@@ -547,7 +568,9 @@ body {
 
   border-radius: 7px;
 
-  background: #f1f3f7;
+  background: #e0e7ff;
+
+  color: #4f46e5;
 
   font-size: 15px;
 }
@@ -1103,30 +1126,59 @@ body {
   font-weight: 700;
 }
 
-.edit-guide-button {
+.guide-actions {
+  display: flex;
+
+  gap: 5px;
+}
+
+.edit-guide-button,
+.delete-guide-button {
   width: 31px;
   height: 31px;
 
-  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid #dfe4ff;
 
   border-radius: 9px;
 
-  background: transparent;
+  background: #eef2ff;
+
+  font-size: 14px;
 
   cursor: pointer;
 
-  opacity: 0;
-
-  transition: 0.15s;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-.guide-management-item:hover
-.edit-guide-button {
-  opacity: 1;
+.delete-guide-button {
+  border-color: #fecaca;
+
+  background: #fef2f2;
 }
 
 .edit-guide-button:hover {
-  background: #eef2ff;
+  transform: scale(1.15);
+
+  background: #e0e7ff;
+
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.18);
+}
+
+.delete-guide-button:hover {
+  transform: scale(1.15);
+
+  background: #fee2e2;
+
+  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.18);
 }
 
 
@@ -1458,4 +1510,636 @@ body {
   font-size: 11px;
 
   font-weight: 800;
+}
+
+/* =====================================
+   DAY CELL — FILL FULL HEIGHT
+===================================== */
+
+.fc .fc-daygrid-day-frame {
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.fc .fc-daygrid-day-top {
+  flex: 1;
+
+  display: flex;
+
+  min-height: 0;
+}
+
+.fc .fc-daygrid-day-number {
+  flex: 1;
+
+  display: flex;
+
+  width: 100%;
+
+  padding: 0;
+
+  color: inherit;
+
+  text-decoration: none;
+}
+
+.fc .fc-daygrid-day-number .day-content {
+  height: auto;
+
+  flex: 1;
+
+  padding-bottom: 6px;
+}
+
+.fc .fc-daygrid-day-events {
+  display: none;
+}
+
+/* השיבוץ נשאר בגודל קבוע — רק השורה התחתונה נדחפת למטה */
+.fc .fc-daygrid-day-number .assigned-guide,
+.fc .fc-daygrid-day-number .empty-assignment {
+  flex: 0 0 auto;
+}
+
+.fc .fc-daygrid-day-number .empty-assignment {
+  min-height: 40px;
+}
+
+
+/* =====================================
+   DAY FOOTER (NUMBER + BELL)
+===================================== */
+
+.day-footer {
+  margin-top: auto;
+
+  min-width: 0;
+}
+
+.day-number-row {
+  padding-top: 4px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 4px;
+}
+
+.day-dates {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  min-width: 0;
+}
+
+.hebrew-date {
+  overflow: hidden;
+
+  color: #8b93a7;
+
+  font-size: 11px;
+
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+
+/* =====================================
+   HEBREW HOLIDAYS & SHABBAT
+===================================== */
+
+.day-holidays {
+  display: flex;
+  flex-direction: column;
+
+  gap: 1px;
+
+  margin-top: 4px;
+
+  min-width: 0;
+}
+
+.day-holiday {
+  overflow: hidden;
+
+  color: #0f766e;
+
+  font-size: 10.5px;
+
+  font-weight: 700;
+
+  line-height: 1.35;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+.day-holiday.shabbat {
+  color: #6d28d9;
+}
+
+.day-holiday.chag {
+  color: #be185d;
+}
+
+.fc .fc-daygrid-day.shabbat-day:not(.fc-day-today) {
+  background: #faf8ff !important;
+}
+
+.fc .fc-daygrid-day.chag-day:not(.fc-day-today) {
+  background: #fff5f9 !important;
+}
+
+.fc .shabbat-day .hebrew-date {
+  color: #7c3aed;
+}
+
+.fc .chag-day .hebrew-date {
+  color: #db2777;
+}
+
+.reminder-bell {
+  width: 22px;
+  height: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid transparent;
+
+  border-radius: 7px;
+
+  background: transparent;
+
+  font-size: 11px;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.reminder-bell:hover {
+  background: #fff7e6;
+
+  border-color: #fde7c2;
+
+  transform: scale(1.08);
+}
+
+.reminder-bell.has-reminders {
+  background: #fff7e6;
+
+  border-color: #fde7c2;
+}
+
+
+/* =====================================
+   DAY REMINDER CHIPS
+===================================== */
+
+.day-reminders {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+
+  margin-top: 5px;
+
+  min-width: 0;
+}
+
+.day-reminder {
+  width: 100%;
+
+  padding: 2px 7px;
+
+  border: 1px solid #fde7c2;
+
+  border-radius: 6px;
+
+  background: #fff7e6;
+
+  color: #b45309;
+
+  font-family: inherit;
+
+  font-size: 10.5px;
+
+  font-weight: 700;
+
+  text-align: right;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  cursor: pointer;
+
+  transition: background 0.15s ease;
+}
+
+.day-reminder:hover {
+  background: #ffefcc;
+}
+
+.day-reminder.more {
+  border-style: dashed;
+
+  background: transparent;
+
+  color: #c2780f;
+}
+
+
+/* =====================================
+   REMINDERS MODAL
+===================================== */
+
+.reminder-backdrop {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 110;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 16px;
+
+  background: rgba(15, 23, 42, 0.35);
+
+  backdrop-filter: blur(2px);
+}
+
+.reminder-modal {
+  width: 400px;
+  max-width: 100%;
+  max-height: calc(100vh - 32px);
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  background: white;
+
+  border: 1px solid #e4e7ef;
+
+  border-radius: 20px;
+
+  box-shadow:
+    0 25px 70px
+    rgba(15, 23, 42, 0.25);
+
+  animation: popup-in 0.16s ease-out;
+}
+
+.popup-icon.reminder-icon {
+  background: #fff7e6;
+}
+
+.reminder-modal-body {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  padding: 14px 15px 16px;
+
+  overflow-y: auto;
+}
+
+.reminder-empty {
+  padding: 18px 10px;
+
+  border-radius: 14px;
+
+  background: #fafbfc;
+
+  color: #9aa3b2;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  text-align: center;
+}
+
+.reminder-item {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+
+  padding: 11px 12px;
+
+  border: 1px solid #f6e3c0;
+
+  border-right: 4px solid #f59e0b;
+
+  border-radius: 13px;
+
+  background: #fffcf5;
+}
+
+.reminder-item-text {
+  flex: 1;
+
+  min-width: 0;
+}
+
+.reminder-item-text strong {
+  display: block;
+
+  color: #172033;
+
+  font-size: 14px;
+
+  font-weight: 800;
+
+  overflow-wrap: anywhere;
+}
+
+.reminder-item-text p {
+  margin: 3px 0 0;
+
+  color: #667085;
+
+  font-size: 12.5px;
+
+  line-height: 1.5;
+
+  white-space: pre-wrap;
+
+  overflow-wrap: anywhere;
+}
+
+.reminder-item-actions {
+  flex-shrink: 0;
+
+  display: flex;
+
+  gap: 4px;
+}
+
+.reminder-icon-button {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid #dfe4ff;
+
+  border-radius: 9px;
+
+  background: #eef2ff;
+
+  font-size: 13px;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.reminder-icon-button.danger {
+  border-color: #fecaca;
+
+  background: #fef2f2;
+}
+
+.reminder-icon-button:hover {
+  transform: scale(1.15);
+
+  background: #e0e7ff;
+
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.18);
+}
+
+.reminder-icon-button.danger:hover {
+  background: #fee2e2;
+
+  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.18);
+}
+
+
+/* FORM */
+
+.reminder-form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  padding: 12px;
+
+  border: 1px solid #e4e7ef;
+
+  border-radius: 14px;
+
+  background: #fafbfc;
+}
+
+.reminder-form-label {
+  color: #9aa3b2;
+
+  font-size: 11px;
+
+  font-weight: 700;
+}
+
+.reminder-form input,
+.reminder-form textarea {
+  width: 100%;
+
+  padding: 10px 12px;
+
+  border: 1px solid #e4e7ef;
+
+  border-radius: 11px;
+
+  background: white;
+
+  color: #172033;
+
+  font-family: inherit;
+
+  font-size: 14px;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.reminder-form textarea {
+  min-height: 80px;
+
+  resize: vertical;
+}
+
+.reminder-form input:focus,
+.reminder-form textarea:focus {
+  outline: none;
+
+  border-color: #4f46e5;
+
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.reminder-form-buttons {
+  display: flex;
+  justify-content: flex-start;
+
+  gap: 8px;
+}
+
+.reminder-save-button,
+.reminder-cancel-button {
+  padding: 8px 16px;
+
+  border: none;
+
+  border-radius: 10px;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: background 0.15s ease;
+}
+
+.reminder-save-button {
+  background: #4f46e5;
+
+  color: white;
+}
+
+.reminder-save-button:hover {
+  background: #4338ca;
+}
+
+.reminder-save-button:disabled {
+  opacity: 0.6;
+
+  cursor: default;
+}
+
+.reminder-cancel-button {
+  background: #eef0f4;
+
+  color: #475467;
+}
+
+.reminder-cancel-button:hover {
+  background: #e4e7ec;
+}
+
+.add-reminder-trigger {
+  width: 100%;
+
+  padding: 10px;
+
+  border: 1.5px dashed #d0d5dd;
+
+  border-radius: 13px;
+
+  background: transparent;
+
+  color: #667085;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.add-reminder-trigger:hover {
+  border-color: #4f46e5;
+
+  background: #f7f8ff;
+
+  color: #4f46e5;
+}
+
+
+/* =====================================
+   REMINDERS — MOBILE
+===================================== */
+
+@media (max-width: 700px) {
+  .reminder-bell {
+    width: 18px;
+    height: 18px;
+
+    font-size: 9px;
+  }
+
+  .day-reminder {
+    padding: 1px 4px;
+
+    font-size: 9px;
+  }
+
+  .hebrew-date {
+    font-size: 8.5px;
+  }
+
+  .day-holiday {
+    font-size: 8.5px;
+  }
+
+  .day-holidays .day-holiday:nth-child(2) {
+    display: none;
+  }
+}
+
+
+/* =====================================
+   DAYS OUTSIDE THE HEBREW MONTH
+===================================== */
+
+.fc .fc-daygrid-day.other-hebrew-month {
+  background: #fbfcfd !important;
+}
+
+.fc .other-hebrew-month .fc-daygrid-day-top {
+  opacity: 0.35;
 }

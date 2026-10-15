@@ -1,0 +1,606 @@
+/* =====================================
+   PAGE
+===================================== */
+
+.shopping-page {
+  max-width: 1200px;
+
+  margin: 0 auto;
+}
+
+
+/* =====================================
+   HEADER
+===================================== */
+
+.shopping-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-bottom: 24px;
+}
+
+.shopping-title-area {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+}
+
+.shopping-title-icon {
+  width: 56px;
+  height: 56px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 17px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #6366f1,
+      #3b82f6
+    );
+
+  font-size: 26px;
+
+  box-shadow:
+    0 10px 25px
+    rgba(79, 70, 229, 0.25);
+}
+
+.shopping-title-area h1 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 30px;
+
+  font-weight: 800;
+}
+
+.shopping-title-area p {
+  margin: 3px 0 0;
+
+  color: #8e98a9;
+
+  font-size: 14px;
+}
+
+.shopping-counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 12px 22px;
+
+  border: 1px solid #fde7c2;
+
+  border-radius: 17px;
+
+  background: #fff7e6;
+}
+
+.shopping-counter strong {
+  color: #b45309;
+
+  font-size: 26px;
+
+  font-weight: 800;
+
+  line-height: 1.1;
+}
+
+.shopping-counter span {
+  color: #c2780f;
+
+  font-size: 12px;
+
+  font-weight: 700;
+}
+
+.shopping-loading {
+  padding: 60px;
+
+  color: #8e98a9;
+
+  text-align: center;
+}
+
+
+/* =====================================
+   LAYOUT
+===================================== */
+
+.shopping-layout {
+  display: grid;
+
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+
+  gap: 20px;
+
+  align-items: start;
+}
+
+
+/* =====================================
+   CARD
+===================================== */
+
+.shopping-card {
+  overflow: hidden;
+
+  background: white;
+
+  border: 1px solid #e7eaf0;
+
+  border-radius: 22px;
+
+  box-shadow:
+    0 10px 30px
+    rgba(15, 23, 42, 0.05);
+}
+
+.shopping-card-header {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 18px 20px;
+
+  border-bottom: 1px solid #edf0f5;
+}
+
+.shopping-card-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 13px;
+
+  background: #eef2ff;
+
+  font-size: 20px;
+}
+
+.shopping-card-icon.missing {
+  background: #fff7e6;
+}
+
+.shopping-card-title {
+  flex: 1;
+
+  min-width: 0;
+}
+
+.shopping-card-title h2 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 18px;
+
+  font-weight: 800;
+}
+
+.shopping-card-title p {
+  margin: 2px 0 0;
+
+  color: #929baa;
+
+  font-size: 12px;
+}
+
+.mark-all-button {
+  padding: 8px 14px;
+
+  border: 1px solid #bbf7d0;
+
+  border-radius: 11px;
+
+  background: #f0fdf4;
+
+  color: #16a34a;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
+}
+
+.mark-all-button:hover {
+  transform: scale(1.05);
+
+  background: #dcfce7;
+}
+
+
+/* =====================================
+   ADD ITEM
+===================================== */
+
+.add-item-area {
+  display: flex;
+
+  gap: 8px;
+
+  padding: 14px 20px 0;
+}
+
+.add-item-area input {
+  flex: 1;
+
+  min-width: 0;
+
+  padding: 10px 13px;
+
+  border: 1px solid #e4e7ef;
+
+  border-radius: 12px;
+
+  background: #fafbfc;
+
+  color: #172033;
+
+  font-family: inherit;
+
+  font-size: 14px;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.add-item-area input:focus {
+  outline: none;
+
+  border-color: #4f46e5;
+
+  background: white;
+
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.add-item-button {
+  padding: 0 16px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: #4f46e5;
+
+  color: white;
+
+  font-family: inherit;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: background 0.15s ease;
+}
+
+.add-item-button:hover {
+  background: #4338ca;
+}
+
+.add-item-button:disabled {
+  opacity: 0.5;
+
+  cursor: default;
+}
+
+
+/* =====================================
+   MISSING LIST
+===================================== */
+
+.missing-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+
+  padding: 14px 20px 20px;
+}
+
+.missing-item {
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+}
+
+.missing-item-main {
+  flex: 1;
+
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 10px 12px;
+
+  border: 1px solid #fde7c2;
+
+  border-right: 4px solid #f59e0b;
+
+  border-radius: 13px;
+
+  background: #fffcf5;
+
+  font-family: inherit;
+
+  text-align: right;
+
+  cursor: pointer;
+
+  animation: item-in 0.18s ease-out;
+
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.missing-item-main:hover {
+  transform: translateX(-3px);
+
+  background: #fff7e6;
+
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.15);
+}
+
+.missing-item-check {
+  width: 20px;
+  height: 20px;
+
+  flex-shrink: 0;
+
+  border: 2px solid #f5b754;
+
+  border-radius: 6px;
+
+  background: white;
+
+  transition: 0.15s;
+}
+
+.missing-item-main:hover .missing-item-check {
+  border-color: #16a34a;
+
+  background: #dcfce7;
+}
+
+.missing-item-icon {
+  font-size: 16px;
+}
+
+.missing-item-name {
+  flex: 1;
+
+  min-width: 0;
+
+  overflow: hidden;
+
+  color: #172033;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+.missing-item-delete {
+  width: 30px;
+  height: 30px;
+
+  flex-shrink: 0;
+
+  border: 1px solid #fecaca;
+
+  border-radius: 9px;
+
+  background: #fef2f2;
+
+  color: #dc2626;
+
+  font-size: 17px;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
+}
+
+.missing-item-delete:hover {
+  transform: scale(1.15);
+
+  background: #fee2e2;
+}
+
+.missing-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 4px;
+
+  margin: 14px 20px 20px;
+
+  padding: 26px 16px;
+
+  border-radius: 16px;
+
+  background: #f0fdf4;
+
+  text-align: center;
+}
+
+.missing-empty-icon {
+  font-size: 30px;
+}
+
+.missing-empty strong {
+  color: #15803d;
+
+  font-size: 15px;
+
+  font-weight: 800;
+}
+
+.missing-empty span {
+  color: #4b8a62;
+
+  font-size: 12.5px;
+}
+
+@keyframes item-in {
+
+  from {
+    opacity: 0;
+
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+
+/* =====================================
+   BASICS
+===================================== */
+
+.basics-groups {
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
+
+  padding: 18px 20px 22px;
+}
+
+.basics-group-title {
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+
+  margin-bottom: 9px;
+
+  color: #475467;
+
+  font-size: 13px;
+
+  font-weight: 800;
+}
+
+.basics-chips {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 7px;
+}
+
+.basic-chip {
+  padding: 7px 14px;
+
+  border: 1px solid #dfe4ff;
+
+  border-radius: 999px;
+
+  background: #f3f4ff;
+
+  color: #3730a3;
+
+  font-family: inherit;
+
+  font-size: 13.5px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  animation: item-in 0.18s ease-out;
+
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.basic-chip:hover {
+  transform: scale(1.07);
+
+  border-color: #a5b4fc;
+
+  background: #e0e7ff;
+
+  box-shadow: 0 5px 14px rgba(79, 70, 229, 0.16);
+}
+
+
+/* =====================================
+   MOBILE
+===================================== */
+
+@media (max-width: 900px) {
+
+  .shopping-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+
+  .shopping-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .shopping-title-area h1 {
+    font-size: 24px;
+  }
+
+  .shopping-card-header,
+  .add-item-area,
+  .missing-list,
+  .basics-groups {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}

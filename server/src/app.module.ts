@@ -8,6 +8,8 @@ import { AssignmentController } from './assignments/assignments.controller';
 import { GuideService } from './gudies/gudie.service';
 import { AssignmentService } from './assignments/assignments.service';
 import { ReminderService } from './reminders/reminder.service';
+import { ShoppingController } from './shopping/shopping.controller';
+import { ShoppingService } from './shopping/shopping.service';
 
 @Module({
   imports: [
@@ -24,8 +26,18 @@ import { ReminderService } from './reminders/reminder.service';
     }),
   ],
 
-  controllers: [GuideController, AssignmentController, ReminderController],
+  controllers: [
+    GuideController,
+    AssignmentController,
+    ReminderController,
+    ShoppingController,
+  ],
 
-  providers: [GuideService, AssignmentService, ReminderService],
+  providers: [
+    GuideService,
+    AssignmentService,
+    ReminderService,
+    ShoppingService,
+  ],
 })
 export class AppModule {}

@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:3000";
+// בפיתוח מקומי: localhost. ב-Vercel: מוגדר במשתנה הסביבה VITE_API_URL
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 export const api = {
   guides: {
@@ -138,6 +139,53 @@ export const api = {
 
     delete: async (id: string) => {
       const response = await fetch(`${API_URL}/reminders/${id}`, {
+        method: "DELETE",
+      });
+
+      return response.json();
+    },
+  },
+
+  shopping: {
+    getAll: async () => {
+      const response = await fetch(`${API_URL}/shopping`);
+      return response.json();
+    },
+
+    create: async (name: string, category?: string) => {
+      const response = await fetch(`${API_URL}/shopping`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, category }),
+      });
+
+      return response.json();
+    },
+
+    setMissing: async (id: string, missing: boolean) => {
+      const response = await fetch(`${API_URL}/shopping/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ missing }),
+      });
+
+      return response.json();
+    },
+
+    markAllAvailable: async () => {
+      const response = await fetch(`${API_URL}/shopping/mark-all-available`, {
+        method: "PATCH",
+      });
+
+      return response.json();
+    },
+
+    delete: async (id: string) => {
+      const response = await fetch(`${API_URL}/shopping/${id}`, {
         method: "DELETE",
       });
 

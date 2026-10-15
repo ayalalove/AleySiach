@@ -788,11 +788,21 @@
 
 // export default SchedulePage;
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { api } from "../../api/api";
+import {
+  getFullHebrewDate,
+  getHebrewDays,
+  getHebrewMonthEnd,
+  getHebrewMonthStart,
+  getHebrewMonthTitle,
+  getHebrewMonthWeeks,
+  shiftHebrewMonth,
+  type HebrewDayInfo,
+} from "../../lib/hebrewCalendar";
 import "./SchedulePage.css";
 
 type Guide = {
@@ -816,7 +826,23 @@ type Assignment = {
 function SchedulePage() {
   const [guides, setGuides] = useState<Guide[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  // היום הלועזי של א׳ בחודש העברי המוצג
+  const [hebrewMonthStart, setHebrewMonthStart] = useState(() =>
+    getHebrewMonthStart(new Date()),
+  );
+  const hebrewMonthEnd = getHebrewMonthEnd(hebrewMonthStart);
+  const [visibleRange, setVisibleRange] = useState<{
+    start: Date;
+    end: Date;
+  } | null>(null);
+
+  const hebrewDays = useMemo(
+    () =>
+      visibleRange
+        ? getHebrewDays(visibleRange.start, visibleRange.end)
+        : new Map<string, HebrewDayInfo>(),
+    [visibleRange],
+  );
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const [popupPosition, setPopupPosition] = useState({
@@ -832,10 +858,13 @@ function SchedulePage() {
   const [addingGuide, setAddingGuide] = useState(false);
 
   const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [showReminderPopup, setShowReminderPopup] = useState(false);
-  const [reminderTitle, setReminderTitle] = useState("");
-  const [reminderContent, setReminderContent] = useState("");
-  const [viewingReminder, setViewingReminder] = useState<Reminder | null>(null);
+  const [reminderDay, setReminderDay] = useState<string | null>(null);
+  const [reminderForm, setReminderForm] = useState<{
+    id: string | null;
+    title: string;
+    content: string;
+  } | null>(null);
+  const [savingReminder, setSavingReminder] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -857,19 +886,17 @@ function SchedulePage() {
     }
   };
 
+  // משמרות בחודש העברי המוצג
   const getMonthlyAssignments = (guideId: string) => {
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
+    const startKey = formatDateKey(hebrewMonthStart);
+    const endKey = formatDateKey(hebrewMonthEnd);
 
-    return assignments.filter((assignment) => {
-      const date = new Date(`${assignment.assignment_date}T12:00:00`);
-
-      return (
+    return assignments.filter(
+      (assignment) =>
         assignment.guide_id === guideId &&
-        date.getFullYear() === year &&
-        date.getMonth() === month
-      );
-    }).length;
+        assignment.assignment_date >= startKey &&
+        assignment.assignment_date <= endKey,
+    ).length;
   };
 
   const addGuide = async () => {
@@ -920,7 +947,18 @@ function SchedulePage() {
     return guides.find((guide) => guide._id === assignment.guide_id) ?? null;
   };
 
-  const handleDateClick = (info: { dateStr: string; dayEl: HTMLElement }) => {
+  const handleDateClick = (info: {
+    dateStr: string;
+    dayEl: HTMLElement;
+    jsEvent: MouseEvent;
+  }) => {
+    // לחיצה על פעמון או על תזכורת לא פותחת בחירת מדריך
+    const target = info.jsEvent.target as HTMLElement | null;
+
+    if (target?.closest(".reminder-bell, .day-reminder")) {
+      return;
+    }
+
     const rect = info.dayEl.getBoundingClientRect();
 
     const popupWidth = 320;
@@ -1130,14 +1168,123 @@ function SchedulePage() {
     }
   };
 
+  // =========================
+  // תזכורות
+  // =========================
+
+  const getRemindersForDate = (date: string) =>
+    reminders.filter((reminder) => reminder.reminder_date === date);
+
+  const openReminderDay = (date: string, startAdding: boolean) => {
+    setReminderDay(date);
+    setReminderForm(startAdding ? { id: null, title: "", content: "" } : null);
+  };
+
+  const closeReminderDay = () => {
+    setReminderDay(null);
+    setReminderForm(null);
+  };
+
+  const startEditingReminder = (reminder: Reminder) => {
+    setReminderForm({
+      id: reminder._id,
+      title: reminder.title,
+      content: reminder.content ?? "",
+    });
+  };
+
+  const saveReminder = async () => {
+    if (!reminderDay || !reminderForm) return;
+
+    const title = reminderForm.title.trim();
+    const content = reminderForm.content.trim() || null;
+
+    if (!title) {
+      alert("יש להזין כותרת לתזכורת");
+      return;
+    }
+
+    setSavingReminder(true);
+
+    try {
+      if (reminderForm.id) {
+        const data = await api.reminders.update(
+          reminderForm.id,
+          reminderDay,
+          title,
+          content,
+        );
+
+        if (!data?._id) {
+          alert("שגיאה בעדכון התזכורת");
+          return;
+        }
+
+        setReminders((current) =>
+          current.map((reminder) =>
+            reminder._id === data._id ? data : reminder,
+          ),
+        );
+      } else {
+        const data = await api.reminders.create(reminderDay, title, content);
+
+        if (!data?._id) {
+          alert("שגיאה בהוספת התזכורת");
+          return;
+        }
+
+        setReminders((current) => [...current, data]);
+      }
+
+      setReminderForm(null);
+    } catch (error) {
+      console.error("Error saving reminder:", error);
+      alert("שגיאה בשמירת התזכורת");
+    } finally {
+      setSavingReminder(false);
+    }
+  };
+
+  const deleteReminder = async (reminder: Reminder) => {
+    const confirmed = window.confirm(
+      `האם את בטוחה שאת רוצה למחוק את התזכורת "${reminder.title}"?`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const result = await api.reminders.delete(reminder._id);
+
+      if (result?.success === false) {
+        alert(result.message || "שגיאה במחיקת התזכורת");
+        return;
+      }
+
+      setReminders((current) =>
+        current.filter((item) => item._id !== reminder._id),
+      );
+
+      if (reminderForm?.id === reminder._id) {
+        setReminderForm(null);
+      }
+    } catch (error) {
+      console.error("Error deleting reminder:", error);
+      alert("שגיאה במחיקת התזכורת");
+    }
+  };
+
   const selectedGuide = selectedDate ? getGuideForDate(selectedDate) : null;
 
   const formatDisplayDate = (date: string) => {
-    return new Date(`${date}T12:00:00`).toLocaleDateString("he-IL", {
+    const dateObject = new Date(`${date}T12:00:00`);
+
+    const gregorian = dateObject.toLocaleDateString("he-IL", {
       weekday: "long",
       day: "numeric",
       month: "long",
     });
+
+    return `${gregorian} · ${getFullHebrewDate(dateObject)}`;
   };
 
   return (
@@ -1199,21 +1346,83 @@ function SchedulePage() {
             </div>
 
             <div className="calendar-container">
+              {/* הלוח מציג חודש עברי: מ-א׳ בחודש ועד סופו.
+                  בכל מעבר חודש הלוח נבנה מחדש עם מספר השבועות המתאים */}
               <FullCalendar
+                key={formatDateKey(hebrewMonthStart)}
                 plugins={[dayGridPlugin, interactionPlugin]}
-                initialView="dayGridMonth"
+                initialView="hebrewMonth"
+                initialDate={hebrewMonthStart}
+                views={{
+                  hebrewMonth: {
+                    type: "dayGrid",
+                    duration: { weeks: getHebrewMonthWeeks(hebrewMonthStart) },
+                  },
+                }}
                 locale="he"
                 direction="rtl"
                 height="auto"
-                fixedWeekCount={false}
+                headerToolbar={{
+                  start: "title",
+                  center: "",
+                  end: "hebToday hebPrev,hebNext",
+                }}
+                customButtons={{
+                  hebPrev: {
+                    icon: "chevron-right",
+                    hint: "החודש הקודם",
+                    click: () =>
+                      setHebrewMonthStart((current) =>
+                        shiftHebrewMonth(current, -1),
+                      ),
+                  },
+                  hebNext: {
+                    icon: "chevron-left",
+                    hint: "החודש הבא",
+                    click: () =>
+                      setHebrewMonthStart((current) =>
+                        shiftHebrewMonth(current, 1),
+                      ),
+                  },
+                  hebToday: {
+                    text: "היום",
+                    click: () =>
+                      setHebrewMonthStart(getHebrewMonthStart(new Date())),
+                  },
+                }}
+                titleFormat={() => getHebrewMonthTitle(hebrewMonthStart)}
                 dateClick={handleDateClick}
                 datesSet={(info) => {
-                  setCurrentMonth(info.view.currentStart);
+                  setVisibleRange({ start: info.start, end: info.end });
+                }}
+                dayCellClassNames={(arg) => {
+                  const classes: string[] = [];
+
+                  if (
+                    arg.date < hebrewMonthStart ||
+                    arg.date > hebrewMonthEnd
+                  ) {
+                    classes.push("other-hebrew-month");
+                  }
+
+                  if (arg.date.getDay() === 6) {
+                    classes.push("shabbat-day");
+                  }
+
+                  if (hebrewDays.get(formatDateKey(arg.date))?.isChag) {
+                    classes.push("chag-day");
+                  }
+
+                  return classes;
                 }}
                 dayCellContent={(arg) => {
                   const date = formatDateKey(arg.date);
 
                   const guide = getGuideForDate(date);
+
+                  const dayReminders = getRemindersForDate(date);
+
+                  const hebrewDay = hebrewDays.get(date);
 
                   return (
                     <div className="day-content">
@@ -1231,36 +1440,81 @@ function SchedulePage() {
                         </div>
                       )}
 
-                      {/* תזכורת */}
-                      {reminders
-                        .filter((reminder) => reminder.reminder_date === date)
-                        .map((reminder) => (
-                          <div
-                            key={reminder._id}
-                            className="day-reminder"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setViewingReminder(reminder);
-                            }}
-                          >
-                            🔔 {reminder.title}
-                          </div>
-                        ))}
+                      {/* תזכורות */}
+                      {dayReminders.length > 0 && (
+                        <div className="day-reminders">
+                          {dayReminders.slice(0, 2).map((reminder) => (
+                            <button
+                              key={reminder._id}
+                              className="day-reminder"
+                              title={reminder.title}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                openReminderDay(date, false);
+                              }}
+                            >
+                              {reminder.title}
+                            </button>
+                          ))}
+
+                          {dayReminders.length > 2 && (
+                            <button
+                              className="day-reminder more"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                openReminderDay(date, false);
+                              }}
+                            >
+                              +{dayReminders.length - 2} נוספות
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="day-footer">
+                      {hebrewDay && hebrewDay.events.length > 0 && (
+                        <div className="day-holidays">
+                          {hebrewDay.events.slice(0, 2).map((holiday) => (
+                            <div
+                              key={holiday.title}
+                              className={`day-holiday ${holiday.type}`}
+                              title={holiday.title}
+                            >
+                              {holiday.title}
+                            </div>
+                          ))}
+                        </div>
+                      )}
 
                       <div className="day-number-row">
-                        <div className="day-number">{arg.dayNumberText}</div>
+                        <div className="day-dates">
+                          <div className="day-number">{arg.date.getDate()}</div>
+
+                          {hebrewDay && (
+                            <span className="hebrew-date">
+                              {hebrewDay.hebrewDate}
+                            </span>
+                          )}
+                        </div>
 
                         <button
-                          className="add-reminder-button"
+                          className={`reminder-bell ${
+                            dayReminders.length > 0 ? "has-reminders" : ""
+                          }`}
+                          title={
+                            dayReminders.length > 0
+                              ? "תזכורות ליום זה"
+                              : "הוספת תזכורת"
+                          }
+                          aria-label="תזכורות"
                           onClick={(event) => {
                             event.stopPropagation();
-
-                            setSelectedDate(date);
-                            setShowReminderPopup(true);
+                            openReminderDay(date, dayReminders.length === 0);
                           }}
                         >
-                          🔔+
+                          🔔
                         </button>
+                      </div>
                       </div>
                     </div>
                   );
@@ -1386,13 +1640,13 @@ function SchedulePage() {
           BACKDROP
       ========================= */}
 
-      {selectedDate && !showReminderPopup && (
+      {selectedDate && (
         <div className="popup-backdrop" onClick={() => setSelectedDate(null)} />
       )}
 
       {/* GUIDE POPUP */}
 
-      {selectedDate && !showReminderPopup && (
+      {selectedDate && (
         <div
           className="guide-popup"
           style={{
@@ -1461,93 +1715,129 @@ function SchedulePage() {
         </div>
       )}
 
-      {/* REMINDER POPUP */}
+      {/* =========================
+          REMINDERS MODAL
+      ========================= */}
 
-      {showReminderPopup && selectedDate && (
-        <div
-          className="reminder-popup"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <h3>הוספת תזכורת</h3>
-
-          <input
-            type="text"
-            placeholder="כותרת התזכורת"
-            value={reminderTitle}
-            onChange={(event) => setReminderTitle(event.target.value)}
-          />
-
-          <textarea
-            placeholder="תוכן התזכורת"
-            value={reminderContent}
-            onChange={(event) => setReminderContent(event.target.value)}
-          />
-
-          <div className="reminder-popup-buttons">
-            <button
-              onClick={() => {
-                setShowReminderPopup(false);
-                setReminderTitle("");
-                setReminderContent("");
-                setSelectedDate(null);
-              }}
-            >
-              ביטול
-            </button>
-
-            <button
-              onClick={async () => {
-                if (!reminderTitle.trim()) {
-                  return;
-                }
-
-                try {
-                  const data = await api.reminders.create(
-                    selectedDate,
-                    reminderTitle.trim(),
-                    reminderContent.trim() || null,
-                  );
-
-                  if (!data?._id) {
-                    alert("שגיאה בהוספת התזכורת");
-                    return;
-                  }
-
-                  setReminders((prev) => [...prev, data]);
-
-                  setReminderTitle("");
-                  setReminderContent("");
-                  setShowReminderPopup(false);
-                  setSelectedDate(null);
-                } catch (error) {
-                  console.error("Error adding reminder:", error);
-
-                  alert("שגיאה בהוספת התזכורת");
-                }
-              }}
-            >
-              הוספה
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* VIEW REMINDER */}
-
-      {viewingReminder && (
-        <div
-          className="popup-backdrop"
-          onClick={() => setViewingReminder(null)}
-        >
+      {reminderDay && (
+        <div className="reminder-backdrop" onClick={closeReminderDay}>
           <div
-            className="reminder-popup"
+            className="reminder-modal"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3>{viewingReminder.title}</h3>
+            <div className="popup-header">
+              <div className="popup-icon reminder-icon">🔔</div>
 
-            <p>{viewingReminder.content || "אין תוכן לתזכורת"}</p>
+              <div className="popup-title">
+                <strong>תזכורות</strong>
 
-            <button onClick={() => setViewingReminder(null)}>סגירה</button>
+                <span>{formatDisplayDate(reminderDay)}</span>
+              </div>
+
+              <button className="close-popup" onClick={closeReminderDay}>
+                ×
+              </button>
+            </div>
+
+            <div className="reminder-modal-body">
+              {getRemindersForDate(reminderDay).length === 0 &&
+                !reminderForm && (
+                  <div className="reminder-empty">אין תזכורות ליום זה</div>
+                )}
+
+              {getRemindersForDate(reminderDay).map((reminder) =>
+                reminderForm?.id === reminder._id ? null : (
+                  <div key={reminder._id} className="reminder-item">
+                    <div className="reminder-item-text">
+                      <strong>{reminder.title}</strong>
+
+                      {reminder.content && <p>{reminder.content}</p>}
+                    </div>
+
+                    <div className="reminder-item-actions">
+                      <button
+                        className="reminder-icon-button"
+                        onClick={() => startEditingReminder(reminder)}
+                        title="עריכת תזכורת"
+                      >
+                        ✏️
+                      </button>
+
+                      <button
+                        className="reminder-icon-button danger"
+                        onClick={() => deleteReminder(reminder)}
+                        title="מחיקת תזכורת"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                ),
+              )}
+
+              {reminderForm ? (
+                <div className="reminder-form">
+                  <div className="reminder-form-label">
+                    {reminderForm.id ? "עריכת תזכורת" : "תזכורת חדשה"}
+                  </div>
+
+                  <input
+                    type="text"
+                    placeholder="כותרת התזכורת"
+                    value={reminderForm.title}
+                    autoFocus
+                    onChange={(event) =>
+                      setReminderForm({
+                        ...reminderForm,
+                        title: event.target.value,
+                      })
+                    }
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        saveReminder();
+                      }
+                    }}
+                  />
+
+                  <textarea
+                    placeholder="פרטים נוספים (לא חובה)"
+                    value={reminderForm.content}
+                    onChange={(event) =>
+                      setReminderForm({
+                        ...reminderForm,
+                        content: event.target.value,
+                      })
+                    }
+                  />
+
+                  <div className="reminder-form-buttons">
+                    <button
+                      className="reminder-cancel-button"
+                      onClick={() => setReminderForm(null)}
+                    >
+                      ביטול
+                    </button>
+
+                    <button
+                      className="reminder-save-button"
+                      onClick={saveReminder}
+                      disabled={savingReminder}
+                    >
+                      {reminderForm.id ? "✓ שמירה" : "+ הוספה"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  className="add-reminder-trigger"
+                  onClick={() =>
+                    setReminderForm({ id: null, title: "", content: "" })
+                  }
+                >
+                  + הוספת תזכורת
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
